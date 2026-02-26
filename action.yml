@@ -108,22 +108,21 @@ runs:
 
         # Prepare the payload
         payload=$(jq -n \
-        --arg spaceId "${{ inputs.spaceId }}" \
-        --arg status "${{ inputs.status }}" \
-        --arg title "Release: ${{ inputs.tag }}" \
-        --arg parentId "${{ inputs.parentId }}" \
-        --arg value "$RELEASE_NOTES" \
-        '{
-            "spaceId": $spaceId,
-            "status": $status,
-            "title": $title,
-            "parentId": $parentId,
-            "body": {
-            "representation": "wiki",
-            "value": $value
-            }
-        }'
-        )
+          --arg spaceId "${{ inputs.spaceId }}" \
+          --arg status "${{ inputs.status }}" \
+          --arg title "Release: ${{ inputs.tag }}" \
+          --arg parentId "${{ inputs.parentId }}" \
+          --arg value "$RELEASE_NOTES" \
+          '{
+              "spaceId": $spaceId,
+              "status": $status,
+              "title": $title,
+              "parentId": $parentId,
+              "body": {
+                "representation": "wiki",
+                "value": $value
+              }
+          }')
 
         echo "Payload: $payload"
         response=$(curl --request POST \
@@ -134,10 +133,10 @@ runs:
             --data "$payload")
         echo "Response: $response"
         pageId=$(echo "$response" | jq -r '.id')
-        echo "Page ID: $pageId"
-        if [ "$pageId" == "null" ]; then
-          echo "Failed to create page"
+        if [ "$pageId" == "null" ] || [ -z "$pageId" ]; then
+          echo "❌ Failed to create page. Response: $response"
           exit 1
         fi
+
+        echo "✅ Page created with ID: $pageId"
         echo "pageId=$pageId" >> "$GITHUB_ENV"
-        echo "pageId=$pageId" >> "$GITHUB_ENV_FILE"
