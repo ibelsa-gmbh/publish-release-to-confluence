@@ -92,7 +92,7 @@ runs:
                     .replace(/["'{}]/g, '')
                     .trim();
 
-                  newBody += "\n{status:colour=Grey|title=Info|subtle=true}" + cleanDesc + "{status}\n";
+                  newBody += "\n{status:color=Grey|title=INFO|subtle=true}\n" + cleanDesc + "\n{status}\n\n";
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
