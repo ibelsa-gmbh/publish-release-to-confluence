@@ -86,14 +86,17 @@ runs:
 
                 const descMatch = prBody.match(/###\s+(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|$)/i);
 
+                //Format Stuff
                 if (descMatch && descMatch[1].trim()) {
                   const cleanDesc = descMatch[1].trim()
-                    .replace(/[{}]/g, '')
+                    .replace(/[{}]/g, '') // Wiki-Syntax schützen
                     .split('\n')
-                    .map(l => `> ${l}`)
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(line => `> ${line}`)
                     .join('\n');
 
-                  newBody += "\n" + cleanDesc + "\n\n";
+                  newBody += "\n" + cleanDesc + "\n";
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
