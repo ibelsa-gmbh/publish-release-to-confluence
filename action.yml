@@ -82,7 +82,7 @@ runs:
                 //Remove PR Scheme
                 prBody = prBody.replace(/#PRSCHEMA_START#[\s\S]*?#PRSCHEMA_END#/g, "");
                 //Remove HTML
-                prBody = prBody.replace(//g, "");
+                prBody = prBody.replace(new RegExp("", "g"), "");
 
                 const descMatch = prBody.match(/(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|\nWeitere Anmerkungen|$)/i);
 
