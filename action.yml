@@ -87,11 +87,11 @@ runs:
       run: |
         # 1. Generate German Locale Date
         sudo locale-gen de_DE.UTF-8
-        GERMAN_DATE_WITH_TIME=$(LANG=de_DE.UTF-8 date +"%d. %B %Y %H:%M")
+        GERMAN_DATE_WITH_TIME=$(LANG=de_DE.UTF-8 date +"%d.%m.%Y %H:%M")
         GERMAN_DATE_WITH_DAY_AND_TIME=$(LANG=de_DE.UTF-8 date +"%A, %d. %B %Y %H:%M")
 
         # 2. Build Release notes
-        HEADER="✅ Neuer *${{ inputs.appName }}* Release deployed!\n${GERMAN_DATE_WITH_DAY_AND_TIME}\nLink: [${{ inputs.tag }}](${RELEASE_URL})"
+        HEADER="✅ Neuer *${{ inputs.appName }}* Release deployed!\n📆 ${GERMAN_DATE_WITH_DAY_AND_TIME}\nLink zum Release (GitHub): [${{ inputs.tag }}](${RELEASE_URL})"
         RELEASE_NOTES="${HEADER}\n\n${RELEASE_NOTES}"
 
         # 3. Format
@@ -116,7 +116,7 @@ runs:
         payload=$(jq -n \
           --arg spaceId "${{ inputs.spaceId }}" \
           --arg status "${{ inputs.status }}" \
-          --arg title "${GERMAN_DATE_WITH_DAY_AND_TIME} Update ${{ inputs.tag }}" \
+          --arg title "${GERMAN_DATE_WITH_TIME} ${{ inputs.tag }}" \
           --arg parentId "${{ inputs.parentId }}" \
           --arg value "$RELEASE_NOTES" \
           '{
