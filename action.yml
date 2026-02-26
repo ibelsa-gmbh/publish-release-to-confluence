@@ -90,10 +90,10 @@ runs:
                   const cleanDesc = "{status:colour=Grey|title=Info|subtle=true}" + descMatch[1].trim()
                     .replace(/\r\n/g, '\n') // Normalisiere Zeilenumbrüche
                     .split('\n')
-                    .map(l => `> _${l}_`) // Kursiv und eingerückt für Confluence
+                    .map(l => `> _${l.replace(/["'{}]/g, '')}_`)
                     .join('\n');
 
-                  newBody += cleanDesc + "\n\n";
+                  newBody += "{status:colour=Grey|title=Info|subtle=true}\n" + cleanDesc + "\n{status}\n\n";
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
