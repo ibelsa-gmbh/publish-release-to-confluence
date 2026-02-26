@@ -57,25 +57,49 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Get Release
+    - name: Get Release and PR Details
       id: get-release
       uses: actions/github-script@v7
       with:
         script: |
           const tag = '${{ inputs.tag }}';
-          const release = await github.rest.repos.getReleaseByTag({
-            owner: '${{ inputs.repoOwner }}',
-            repo: '${{ inputs.repoName }}',
-            tag: tag
-          });
-          if (!release || !release.data.body) {
-              console.error('Invalid release');
-              return;
+          const owner = '${{ inputs.repoOwner }}';
+          const repo = '${{ inputs.repoName }}';
+
+          const release = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
+          let lines = release.data.body.split('\n');
+          let newBody = "";
+
+          for (let line of lines) {
+            newBody += line + "\n";
+
+            const prMatch = line.match(/\/pull\/([0-9]+)/);
+            if (prMatch) {
+              const prNumber = prMatch[1];
+              try {
+                const pr = await github.rest.pulls.get({ owner, repo, pull_number: parseInt(prNumber) });
+                const prBody = pr.data.body || "";
+
+                const descMatch = prBody.match(/(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|\nWeitere Anmerkungen|$)/i);
+
+                if (descMatch && descMatch[1].trim()) {
+                  const cleanDesc = "{status:colour=Grey|title=Info|subtle=true}" + descMatch[1].trim()
+                    .replace(/\r\n/g, '\n') // Normalisiere Zeilenumbrüche
+                    .split('\n')
+                    .map(l => `> _${l}_`) // Kursiv und eingerückt für Confluence
+                    .join('\n');
+
+                  newBody += cleanDesc + "\n\n";
+                }
+              } catch (e) {
+                console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
+              }
+            }
           }
-          console.log(release.data.body);
+
           return {
-              body: release.data.body,
-              url: `https://github.com/${{ inputs.repoOwner }}/${{ inputs.repoName }}/releases/tag/${tag}`
+              body: newBody,
+              url: `https://github.com/${owner}/${repo}/releases/tag/${tag}`
           };
 
     - name: Post Release Notes to Confluence
