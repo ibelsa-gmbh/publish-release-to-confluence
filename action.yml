@@ -78,7 +78,7 @@ runs:
               const prNumber = prMatch[1];
               try {
                 const pr = await github.rest.pulls.get({ owner, repo, pull_number: parseInt(prNumber) });
-                const prBody = pr.data.body || "";
+                let prBody = pr.data.body || ""
                 //Remove PR Scheme
                 prBody = prBody.replace(/#PRSCHEMA_START#[\s\S]*?#PRSCHEMA_END#/g, "");
                 //Remove HTML
