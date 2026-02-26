@@ -88,11 +88,12 @@ runs:
 
                 if (descMatch && descMatch[1].trim()) {
                   const cleanDesc = descMatch[1].trim()
-                    .replace(/\r?\n/g, ' ')
-                    .replace(/["'{}]/g, '')
-                    .trim();
+                    .replace(/[{}]/g, '')
+                    .split('\n')
+                    .map(l => `> ${l}`)
+                    .join('\n');
 
-                  newBody += "\n{status:color=Grey|title=INFO|subtle=true}\n" + cleanDesc + "\n{status}\n\n";
+                  newBody += "\n" + cleanDesc + "\n\n";
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
@@ -110,6 +111,7 @@ runs:
       shell: bash
       env:
         RELEASE_DATA: ${{ steps.get-release.outputs.result }}
+        TZ: "Europe/Berlin"
       run: |
         RELEASE_NOTES=$(echo "$RELEASE_DATA" | jq -r '.body')
         RELEASE_URL=$(echo "$RELEASE_DATA" | jq -r '.url')
@@ -136,9 +138,6 @@ runs:
 
         # Replace @username with a link to the user's GitHub profile
         RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed -r 's/@([^ ]+)/[@\1|https:\/\/github.com\/\1]/g')
-
-        # Replace '\n' with '<br/>'
-        #RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed 's/\\n/<br\/>/g')
 
         # Prepare the payload
         payload=$(jq -n \
