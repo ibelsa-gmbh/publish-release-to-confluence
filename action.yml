@@ -85,8 +85,11 @@ runs:
         RELEASE_NOTES: ${{ fromJSON(steps.get-release.outputs.result).body }}
         RELEASE_URL: ${{ fromJSON(steps.get-release.outputs.result).url }}
       run: |
+        # German Locale
+        GERMAN_DATE=$(LANG=de_DE.UTF-8 date +"%A, %d. %B %Y")
+
         # Add additional line before the content
-        RELEASE_NOTES="✅ New *${{ inputs.appName }}* Release [${{ inputs.tag }}](${RELEASE_URL}) $(date)\n\n${RELEASE_NOTES}"
+        RELEASE_NOTES="✅ Neuer *${{ inputs.appName }}* Release deployed!\n  ${GERMAN_DATE} \n Link: [${{ inputs.tag }}](${RELEASE_URL}) ${GERMAN_DATE}\n\n${RELEASE_NOTES}"
 
         # Remove '##' from RELEASE_NOTES
         RELEASE_NOTES=$(echo -e "${RELEASE_NOTES}" | sed 's/## //g')
