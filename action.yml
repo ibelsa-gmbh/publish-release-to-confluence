@@ -139,5 +139,5 @@ runs:
           echo "Failed to create page"
           exit 1
         fi
-        echo "pageId=$pageId" >> $GITHUB_ENV
-        echo "pageId=$pageId" >> $GITHUB_ENV_FILE
+        echo "pageId=$pageId" >> "$GITHUB_ENV"
+        echo "pageId=$pageId" >> "$GITHUB_ENV_FILE"
