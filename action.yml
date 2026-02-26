@@ -139,7 +139,7 @@ runs:
         RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed -r 's/@([^ ]+)/[@\1|https:\/\/github.com\/\1]/g')
 
         # Replace '\n' with '<br/>'
-        RELEASE_NOTES=$(echo "${RELEASE_NOTES} | sed 's/\\n/<br\/>/g')
+        RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed 's/\\n/<br\/>/g')
 
         # Prepare the payload
         payload=$(jq -n \
