@@ -79,6 +79,10 @@ runs:
               try {
                 const pr = await github.rest.pulls.get({ owner, repo, pull_number: parseInt(prNumber) });
                 const prBody = pr.data.body || "";
+                //Remove PR Scheme
+                prBody = prBody.replace(/#PRSCHEMA_START#[\s\S]*?#PRSCHEMA_END#/g, "");
+                //Remove HTML
+                prBody = prBody.replace(//g, "");
 
                 const descMatch = prBody.match(/(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|\nWeitere Anmerkungen|$)/i);
 
@@ -106,9 +110,10 @@ runs:
       id: post_to_confluence
       shell: bash
       env:
-        RELEASE_NOTES: ${{ fromJSON(steps.get-release.outputs.result).body }}
-        RELEASE_URL: ${{ fromJSON(steps.get-release.outputs.result).url }}
+        RELEASE_DATA: ${{ steps.get-release.outputs.result }}
       run: |
+        RELEASE_NOTES=$(echo "$RELEASE_DATA" | jq -r '.body')
+        RELEASE_URL=$(echo "$RELEASE_DATA" | jq -r '.url')
         # 1. Generate German Locale Date
         sudo locale-gen de_DE.UTF-8
         GERMAN_DATE_WITH_TIME=$(LANG=de_DE.UTF-8 date +"%d.%m.%Y %H:%M")
@@ -134,7 +139,7 @@ runs:
         RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed -r 's/@([^ ]+)/[@\1|https:\/\/github.com\/\1]/g')
 
         # Replace '\n' with '<br/>'
-        RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed 's/\\n/<br\/>/g')
+        RELEASE_NOTES=$(echo "${RELEASE_NOTES} | sed 's/\\n/<br\/>/g')
 
         # Prepare the payload
         payload=$(jq -n \
