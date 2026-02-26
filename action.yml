@@ -84,16 +84,15 @@ runs:
                 //Remove HTML
                 prBody = prBody.replace(new RegExp("", "g"), "");
 
-                const descMatch = prBody.match(/(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|\nWeitere Anmerkungen|$)/i);
+                const descMatch = prBody.match(/###\s+(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|$)/i);
 
                 if (descMatch && descMatch[1].trim()) {
-                  const cleanDesc = "{status:colour=Grey|title=Info|subtle=true}" + descMatch[1].trim()
-                    .replace(/\r\n/g, '\n') // Normalisiere Zeilenumbrüche
-                    .split('\n')
-                    .map(l => `> _${l.replace(/["'{}]/g, '')}_`)
-                    .join('\n');
+                  const cleanDesc = descMatch[1].trim()
+                    .replace(/\r?\n/g, ' ')
+                    .replace(/["'{}]/g, '')
+                    .trim();
 
-                  newBody += "{status:colour=Grey|title=Info|subtle=true}\n" + cleanDesc + "\n{status}\n\n";
+                  newBody += "\n{status:colour=Grey|title=Info|subtle=true}" + cleanDesc + "{status}\n";
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
