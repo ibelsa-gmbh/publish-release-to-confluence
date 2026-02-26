@@ -90,13 +90,11 @@ runs:
                 if (descMatch && descMatch[1].trim()) {
                   const cleanDesc = descMatch[1].trim()
                     .replace(/[{}]/g, '')
-                    .split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0)
-                    .map(line => `        ${line}`)
-                    .join('\n');
+                    .trim();
 
-                  newBody += "\n" + cleanDesc + "\n";
+                  const expander = "\n{expand:title=Details zum ausklappen...}\n" + cleanDesc + "\n{expand}\n";
+
+                  newBody += "\n" + expander + "\n";
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
