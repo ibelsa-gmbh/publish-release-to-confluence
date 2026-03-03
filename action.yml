@@ -69,87 +69,84 @@ runs:
           const release = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
           let lines = release.data.body.split('\n');
 
-          const groups = {
-              '🌟 Features': [],
-              '🔥 Fixes': [],
-              '🔒 Security': [],
-              '🛠️ Refactoring': [],
-              '🖌️ UI/UX': [],
-              '⚙️ Sonstiges': []
-          };
+          const sections = {};
+          let currentSection = "Allgemein"; // Fallback
 
           for (let line of lines) {
-            const prMatch = line.match(/\/pull\/([0-9]+)/);
+              const trimmedLine = line.trim();
 
-            if (prMatch) {
-              const prNumber = prMatch[1];
-              let category = '⚙️ Sonstiges'; // Default
-              let cleanLine = line.trim();
-
-              if (cleanLine.toUpperCase().includes('[FEATURE]')) {
-                category = '🌟 Features';
-                cleanLine = cleanLine.replace(/\[FEATURE\]/gi, '').trim();
-              } else if (cleanLine.toUpperCase().includes('[FIX]')) {
-                category = '🔥 Fixes';
-                cleanLine = cleanLine.replace(/\[FIX\]/gi, '').trim();
-              } else if (cleanLine.toUpperCase().includes('[BUGFIX]')) {
-                category = '🔥 Fixes';
-                cleanLine = cleanLine.replace(/\[BUGFIX\]/gi, '').trim();
-              } else if (cleanLine.toUpperCase().includes('[SECURITY]')) {
-                category = '🔒 Security';
-                cleanLine = cleanLine.replace(/\[SECURITY\]/gi, '').trim();
-              } else if (cleanLine.toUpperCase().includes('[REFACTORING]')) {
-                category = '🛠️ Refactoring';
-                cleanLine = cleanLine.replace(/\[REFACTORING\]/gi, '').trim();
-              } else if (cleanLine.toUpperCase().includes('[UI/UX]')) {
-                category = '🖌️ UI/UX';
-                cleanLine = cleanLine.replace(/\[UI\/UX\]/gi, '').trim();
-              } else if (cleanLine.toUpperCase().includes('[OTHER]')) {
-                category = '⚙️ Sonstiges';
-                cleanLine = cleanLine.replace(/\[OTHER\]/gi, '').trim();
+              if (trimmedLine.startsWith('###')) {
+                  currentSection = trimmedLine.replace(/^###\s+/, '');
+                  if (!sections[currentSection]) {
+                      sections[currentSection] = {
+                          '🌟 Features': [],
+                          '🔥 Fixes': [],
+                          '🔒 Security': [],
+                          '🛠️ Refactoring': [],
+                          '🖌️ UI/UX': [],
+                          '⚙️ Sonstiges': []
+                      };
+                  }
+                  continue;
               }
 
-              cleanLine = cleanLine.replace(/^[\s*+-]+/, '').trim();
-
-              let itemContent = `* ${cleanLine}`;
-
-              try {
-                const pr = await github.rest.pulls.get({ owner, repo, pull_number: parseInt(prNumber) });
-                let prBody = pr.data.body || "";
-
-                prBody = prBody.replace(/#PRSCHEMA_START#[\s\S]*?#PRSCHEMA_END#/g, "");
-
-                const descMatch = prBody.match(/###\s+(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|$)/i);
-
-                if (descMatch && descMatch[1].trim()) {
-                  const cleanDesc = descMatch[1].trim().replace(/[{}]/g, '').trim();
-                  const expander = "\n{expand:title=Details zum ausklappen...}\n" + cleanDesc + "\n{expand}";
-                  itemContent += "\n" + expander + "\n";
-                }
-              } catch (e) {
-                console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
+              if (!sections[currentSection]) {
+                  sections[currentSection] = { '🌟 Features': [], '🔥 Fixes': [], '🔒 Security': [], '🛠️ Refactoring': [], '🖌️ UI/UX': [], '⚙️ Sonstiges': [] };
               }
 
-              if (!groups[category]) {
-                  category = '⚙️ Sonstiges';
-                }
+              const prMatch = trimmedLine.match(/\/pull\/([0-9]+)/);
 
-              groups[category].push(itemContent);
+              if (prMatch) {
+                  const prNumber = prMatch[1];
+                  let category = '⚙️ Sonstiges';
+                  let cleanLine = trimmedLine;
 
-            } else if (line.trim().length > 0 && !line.startsWith('#')) {
-              groups['⚙️ Sonstiges'].push(`* ${line.trim()}`);
-            }
+                  if (cleanLine.toUpperCase().includes('[FEATURE]')) category = '🌟 Features';
+                  else if (cleanLine.toUpperCase().includes('[FIX]')) category = '🔥 Fixes';
+                  else if (cleanLine.toUpperCase().includes('[BUGFIX]')) category = '🔥 Fixes';
+                  else if (cleanLine.toUpperCase().includes('[SECURITY]')) category = '🔒 Security';
+                  else if (cleanLine.toUpperCase().includes('[REFACTORING]')) category = '🛠️ Refactoring';
+                  else if (cleanLine.toUpperCase().includes('[UI/UX]')) category = '🖌️ UI/UX';
+
+                  cleanLine = cleanLine.replace(/\[(FEATURE|FIX|BUGFIX|SECURITY|REFACTORING|UI\/UX|OTHER)\]/gi, '').trim();
+                  cleanLine = cleanLine.replace(/^[\s*+-]+/, '').trim();
+
+                  let itemContent = `* ${cleanLine}`;
+
+                  try {
+                      const pr = await github.rest.pulls.get({ owner, repo, pull_number: parseInt(prNumber) });
+                      let prBody = pr.data.body || "";
+                      prBody = prBody.replace(/#PRSCHEMA_START#[\s\S]*?#PRSCHEMA_END#/g, "");
+                      const descMatch = prBody.match(/###\s+(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|$)/i);
+
+                      if (descMatch && descMatch[1].trim()) {
+                          const cleanDesc = descMatch[1].trim().replace(/[{}]/g, '').trim();
+                          itemContent += `\n{expand:title=Details...}\n${cleanDesc}\n{expand}`;
+                      }
+                  } catch (e) {
+                      console.log(`Keine Details für PR #${prNumber}`);
+                  }
+
+                  sections[currentSection][category].push(itemContent);
+
+              } else if (trimmedLine.length > 0 && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('**Full Changelog**')) {
+                  sections[currentSection]['⚙️ Sonstiges'].push(`* ${trimmedLine}`);
+              }
           }
-
-          const order = ['🌟 Features', '🔥 Fixes', '🔒 Security', '🛠️ Refactoring', '🖌️ UI/UX', '⚙️ Sonstiges'];
           let newBody = "";
+          const categoryOrder = ['🌟 Features', '🔥 Fixes', '🔒 Security', '🛠️ Refactoring', '🖌️ UI/UX', '⚙️ Sonstiges'];
 
-          for (const title of order) {
-            const items = groups[title];
-            if (items.length > 0) {
-              newBody += `h2. ${title}\n\n`; // Confluence Header
-              newBody += items.join('\n\n') + "\n\n";
-            }
+          for (const sectionName in sections) {
+              newBody += `h1. ${sectionName}\n\n`;
+
+              for (const cat of categoryOrder) {
+                  const items = sections[sectionName][cat];
+                  if (items && items.length > 0) {
+                      newBody += `h2. ${cat}\n`;
+                      newBody += items.join('\n') + "\n\n";
+                  }
+              }
+              newBody += "----\n";
           }
 
           return {
