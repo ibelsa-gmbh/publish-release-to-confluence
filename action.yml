@@ -68,42 +68,70 @@ runs:
 
           const release = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
           let lines = release.data.body.split('\n');
-          let newBody = "";
+
+          const groups = {
+              '🌟 Features': [],
+              '🔥 Fixes': [],
+              '🛠️ Sonstiges': []
+          };
 
           for (let line of lines) {
-            newBody += line + "\n";
-
             const prMatch = line.match(/\/pull\/([0-9]+)/);
+
             if (prMatch) {
               const prNumber = prMatch[1];
+              let category = '🛠️ Sonstiges'; // Default
+              let cleanLine = line.trim();
+
+              if (cleanLine.toUpperCase().includes('[FEATURE]')) {
+                category = '🌟 Features';
+                cleanLine = cleanLine.replace(/\[FEATURE\]/gi, '').trim();
+              } else if (cleanLine.toUpperCase().includes('[BUGFIX]')) {
+                category = '🔥 Fixes';
+                cleanLine = cleanLine.replace(/\[BUGFIX\]/gi, '').trim();
+              }
+
+              cleanLine = cleanLine.replace(/^[\s*+-]+/, '').trim();
+
+              let itemContent = `* ${cleanLine}`;
+
               try {
                 const pr = await github.rest.pulls.get({ owner, repo, pull_number: parseInt(prNumber) });
-                let prBody = pr.data.body || ""
-                //Remove PR Scheme
+                let prBody = pr.data.body || "";
+
                 prBody = prBody.replace(/#PRSCHEMA_START#[\s\S]*?#PRSCHEMA_END#/g, "");
-                //Remove HTML
-                prBody = prBody.replace(new RegExp("", "g"), "");
 
                 const descMatch = prBody.match(/###\s+(?:Beschreibung|Description)\s*([\s\S]*?)(?=\n###|$)/i);
 
-                //Format Stuff
                 if (descMatch && descMatch[1].trim()) {
-                  const cleanDesc = descMatch[1].trim()
-                    .replace(/[{}]/g, '')
-                    .trim();
-
-                  const expander = "\n{expand:title=Details zum ausklappen...}\n" + cleanDesc + "\n{expand}\n";
-
-                  newBody += "\n" + expander + "\n";
+                  const cleanDesc = descMatch[1].trim().replace(/[{}]/g, '').trim();
+                  const expander = "\n{expand:title=Details zum ausklappen...}\n" + cleanDesc + "\n{expand}";
+                  itemContent += expander;
                 }
               } catch (e) {
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
               }
+
+              groups[category].push(itemContent);
+
+            } else if (line.trim().length > 0 && !line.startsWith('#')) {
+              groups['🛠️ Sonstiges'].push(`* ${line.trim()}`);
+            }
+          }
+
+          const order = ['🌟 Features', '🔥 Fixes', '🛠️ Sonstiges'];
+          let newBody = "";
+
+          for (const title of order) {
+            const items = groups[title];
+            if (items.length > 0) {
+              newBody += `h2. ${title}\n\n`; // Confluence Header
+              newBody += items.join('\n\n') + "\n\n";
             }
           }
 
           return {
-              body: newBody,
+              body: newBody.trim(),
               url: `https://github.com/${owner}/${repo}/releases/tag/${tag}`
           };
 
