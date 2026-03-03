@@ -72,7 +72,10 @@ runs:
           const groups = {
               '🌟 Features': [],
               '🔥 Fixes': [],
-              '🛠️ Sonstiges': []
+              '🔒 Security': [],
+              '🛠️ Refactoring': []
+              '🖌️ UI/UX': []
+              '⚙️ Sonstiges': []
           };
 
           for (let line of lines) {
@@ -80,15 +83,30 @@ runs:
 
             if (prMatch) {
               const prNumber = prMatch[1];
-              let category = '🛠️ Sonstiges'; // Default
+              let category = '⚙️ Sonstiges'; // Default
               let cleanLine = line.trim();
 
               if (cleanLine.toUpperCase().includes('[FEATURE]')) {
                 category = '🌟 Features';
                 cleanLine = cleanLine.replace(/\[FEATURE\]/gi, '').trim();
+              } else if (cleanLine.toUpperCase().includes('[FIX]')) {
+                category = '🔥 Fixes';
+                cleanLine = cleanLine.replace(/\[FIX\]/gi, '').trim();
               } else if (cleanLine.toUpperCase().includes('[BUGFIX]')) {
                 category = '🔥 Fixes';
                 cleanLine = cleanLine.replace(/\[BUGFIX\]/gi, '').trim();
+              } else if (cleanLine.toUpperCase().includes('[SECURITY]')) {
+                category = '🔒 Security';
+                cleanLine = cleanLine.replace(/\[SECURITY\]/gi, '').trim();
+              } else if (cleanLine.toUpperCase().includes('[REFACTORING]')) {
+                category = '🛠️ Refactoring';
+                cleanLine = cleanLine.replace(/\[REFACTORING\]/gi, '').trim();
+              } else if (cleanLine.toUpperCase().includes('[UI/UX]')) {
+                category = '🖌️ UI/UX';
+                cleanLine = cleanLine.replace(/\[UI\/UX\]/gi, '').trim();
+              } else if (cleanLine.toUpperCase().includes('[OTHER]')) {
+                category = '⚙️ Sonstiges';
+                cleanLine = cleanLine.replace(/\[OTHER\]/gi, '').trim();
               }
 
               cleanLine = cleanLine.replace(/^[\s*+-]+/, '').trim();
