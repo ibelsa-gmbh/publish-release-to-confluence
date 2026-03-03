@@ -130,6 +130,10 @@ runs:
                 console.log(`Konnte Details für PR #${prNumber} nicht laden.`);
               }
 
+              if (!groups[category]) {
+                  category = '⚙️ Sonstiges';
+              }
+
               groups[category].push(itemContent);
 
             } else if (line.trim().length > 0 && !line.startsWith('#')) {
