@@ -73,8 +73,8 @@ runs:
               '🌟 Features': [],
               '🔥 Fixes': [],
               '🔒 Security': [],
-              '🛠️ Refactoring': []
-              '🖌️ UI/UX': []
+              '🛠️ Refactoring': [],
+              '🖌️ UI/UX': [],
               '⚙️ Sonstiges': []
           };
 
