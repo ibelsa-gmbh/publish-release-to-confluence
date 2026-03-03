@@ -132,16 +132,16 @@ runs:
 
               if (!groups[category]) {
                   category = '⚙️ Sonstiges';
-              }
+                }
 
               groups[category].push(itemContent);
 
             } else if (line.trim().length > 0 && !line.startsWith('#')) {
-              groups['🛠️ Sonstiges'].push(`* ${line.trim()}`);
+              groups['⚙️ Sonstiges'].push(`* ${line.trim()}`);
             }
           }
 
-          const order = ['🌟 Features', '🔥 Fixes', '🛠️ Sonstiges'];
+          const order = ['🌟 Features', '🔥 Fixes', '🔒 Security', '🛠️ Refactoring', '🖌️ UI/UX', '⚙️ Sonstiges'];
           let newBody = "";
 
           for (const title of order) {
