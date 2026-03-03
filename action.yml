@@ -121,7 +121,7 @@ runs:
 
                       if (descMatch && descMatch[1].trim()) {
                           const cleanDesc = descMatch[1].trim().replace(/[{}]/g, '').trim();
-                          itemContent += `\n{expand:title=Details...}\n${cleanDesc}\n{expand}\n`;
+                          itemContent += `\n\n{expand:title=Details...}\n${cleanDesc}\n{expand}\n\n`;
                       }
                   } catch (e) {
                       console.log(`Keine Details für PR #${prNumber}`);
