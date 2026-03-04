@@ -70,7 +70,7 @@ runs:
           let lines = release.data.body.split('\n');
 
           const sections = {};
-          let currentSection = "Allgemein"; // Fallback
+          let currentSection = "";
 
           for (let line of lines) {
               const trimmedLine = line.trim();
@@ -186,6 +186,9 @@ runs:
 
         # Replace @username with a link to the user's GitHub profile
         RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed -r 's/@([^ ]+)/[@\1|https:\/\/github.com\/\1]/g')
+
+        # Replace [text] with (text) to avoid confluence link parsing
+        RELEASE_NOTES=$(echo "${RELEASE_NOTES}" | sed -r 's/\[([^|\]]+)\]/(\1)/g')
 
         # Prepare the payload
         payload=$(jq -n \
